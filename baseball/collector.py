@@ -14,7 +14,7 @@ options = Options()
 options.add_argument("--headless")
 options.add_argument("--log-level=3")
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
-browser = webdriver.Chrome(service=Service("/Users/thealissonshow/Documents/The Universe/Brizen Sports/chromedriver"), options=options)
+browser = webdriver.Chrome(service=Service("/Users/thealissonshow/Documents/The Universe/brizen-sports/chromedriver"), options=options)
 
 
 def count_games(competition):
