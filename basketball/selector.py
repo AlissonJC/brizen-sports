@@ -95,6 +95,7 @@ def flags(competition):
         "france": "FR",
         "germany": "DE",
         "italy": "IT",
+        "mexico": "MX",
         "spain": "ES",
         "usa": "US",
         "brazil": "BR",
