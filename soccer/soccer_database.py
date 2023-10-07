@@ -16,6 +16,8 @@ def delete_all_games():
     x = soccer_collection.delete_many({})
     print(x.deleted_count)
 
+#delete_all_games()
+
 def count_games(competition):
     count = 0
     for game in soccer_collection.find({"competition": competition}):

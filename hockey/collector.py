@@ -1,19 +1,17 @@
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, StaleElementReferenceException, NoSuchWindowException
-from selenium.webdriver.chrome.options import Options 
+from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
+from selenium.webdriver.chrome.options import Options
 from time import sleep
-import os
-from hockey_database import hockey_collection, delete_games
-from pymongo.errors import DuplicateKeyError
+from hockey_database import hockey_collection
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
-options = Options()  
+options = Options()
 options.add_argument("--headless")
 options.add_argument("--log-level=3")
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
-browser = webdriver.Chrome(service=Service("/Users/thealissonshow/Documents/The Universe/brizen-sports/chromedriver"), options=options)
+browser = webdriver.Chrome(service=Service("/Users/thealissonshow/Documents/The Universe/brizen-sports/chromedriver"),
+                           options=options)
 
 
 def count_games(competition):
@@ -21,6 +19,7 @@ def count_games(competition):
     for game in hockey_collection.find({"competition": competition}):
         jump += 1
     return jump
+
 
 def load_page_completely():
     more_games = True
@@ -33,57 +32,35 @@ def load_page_completely():
         except (ElementNotVisibleException, NoSuchElementException) as e:
             more_games = False
 
+
 def get_games_data():
-    results_window = browser.window_handles[0]
     games = browser.find_elements(by=By.CLASS_NAME, value="event__match--twoLine")
-    games_to_schedule = browser.find_elements(by=By.CLASS_NAME, value="event__match--scheduled")
-    diff = len(games) - len(games_to_schedule)
-    games = games[-diff:]
     games = list(reversed(games))
     for i in range(len(games)):
-        browser.execute_script("arguments[0].click();", games[i + jump])
-        game_window = browser.window_handles[1]
-        browser.switch_to.window(game_window)
+        # First, initialize the variables
 
-        # Score
+        # Scores
         homeFT = 0
         awayFT = 0
 
-        _ht = browser.find_element(by=By.CLASS_NAME, value='duelParticipant__home')
-        homeName = _ht.find_element(by=By.CLASS_NAME, value='participant__participantName').text
+        # Get HomeTeam
+        homeName = games[i+jump].find_element(by=By.CLASS_NAME, value='event__participant--home').text
         while homeName == "":
-            _ht = browser.find_element(by=By.CLASS_NAME, value='duelParticipant__home')
-            homeName = _ht.find_element(by=By.CLASS_NAME, value='participant__participantName').text
+            homeName = games[i+jump].find_element(by=By.CLASS_NAME, value='event__participant--home').text
 
         # Get AwayTeam
-        _at = browser.find_element(by=By.CLASS_NAME, value='duelParticipant__away')
-        awayName = _at.find_element(by=By.CLASS_NAME, value='participant__participantName').text
+        awayName = games[i+jump].find_element(by=By.CLASS_NAME, value='event__participant--away').text
         while awayName == "":
-            _at = browser.find_element(by=By.CLASS_NAME, value='duelParticipant__away')
-            awayName = _at.find_element(by=By.CLASS_NAME, value='participant__participantName').text
+            awayName = games[i+jump].find_element(by=By.CLASS_NAME, value='event__participant--away').text
 
         # Placares
 
-        status = browser.find_element(by=By.CLASS_NAME, value="detailScore__status").text
-
-        if status == "AWARDED":
-            try:
-                scoreFT = browser.find_element(by=By.CLASS_NAME, value="detailScore__wrapper").text
-                homeFT, separator, awayFT = scoreFT.split()
-            except ValueError:
-                homeFT = 0
-                awayFT = 0
-        elif status == "AFTER OVERTIME" or status == "AFTER PENALTIES":
-            scoreFT = browser.find_element(by=By.CLASS_NAME, value="detailScore__fullTime").text
-            scoreFT = scoreFT[1:-1]
-            homeFT, separator, awayFT = scoreFT.split()
-        else:
-            try:
-                scoreFT = browser.find_element(by=By.CLASS_NAME, value="detailScore__wrapper").text
-                homeFT, separator, awayFT = scoreFT.split()
-            except ValueError:
-                homeFT = 0
-                awayFT = 0
+        homeFT = games[i+jump].find_element(by=By.CLASS_NAME, value="event__score--home").text
+        if homeFT == "-":
+            homeFT = 0
+        awayFT = games[i+jump].find_element(by=By.CLASS_NAME, value="event__score--away").text
+        if awayFT == "-":
+            awayFT = 0
 
         game_data = {
             "competition": competition,
@@ -96,9 +73,6 @@ def get_games_data():
         hockey_collection.insert_one(game_data)
         print(f"Added: {homeName} {game_data['home_ft']} x {game_data['away_ft']} {awayName}")
 
-        browser.execute_script("window.close();")
-        browser.switch_to.window(results_window)
-        
 
 try:
     link = input("URL: ")
@@ -118,8 +92,3 @@ except KeyboardInterrupt:
     print("Service terminated by user.")
     browser.close()
     browser.quit()
-except DuplicateKeyError:
-    delete_games(competition)
-    browser.close()
-    browser.quit()
-    print(f"Games deleted in {competition.upper()}.")

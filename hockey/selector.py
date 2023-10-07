@@ -53,35 +53,22 @@ def get_away_team(competition):
         return get_away_team(competition)
 
 
-def handicap(competition, home, away, handicap_home):
+def handicap(competition, home, handicap_home):
 
     home_win, home_void, home_lost, games_home = team_handicap_in_competition(competition, home, handicap_home)
-    away_win, away_void, away_lost, games_away = team_handicap_in_competition(competition, away, -handicap_home)
 
     odds_home = 0
     flag_home = 0
-    odds_away = 0
-    flag_away = 0
 
-    if games_home >= 1 and games_away >= 1:
-        if (home_win + home_void) >= likelihood and (away_lost + away_void) >= likelihood:
-            if (home_win + away_lost + home_void + away_void)/2 >= likelihood and (home_win + away_lost + home_void + away_void)/2 > \
-                (home_void + away_void + home_lost + away_win)/2:
-                flag_home = 1
-                odds_home = (home_win + away_lost + home_void + away_void)/2*100
-        if (home_void  + home_lost) >= likelihood and (away_void + away_win) >= likelihood:
-            if (home_void + away_void + home_lost + away_win)/2 >= likelihood and \
-                (home_void + away_void + home_lost + away_win)/2 > (home_win + away_lost + home_void + away_void)/2:
-                flag_away = 1
-                odds_away = float((home_void + away_void + home_lost + away_win)/2*100)
+    if games_home >= 1:
+        if (home_win + home_void) >= likelihood:
+            flag_home = 1
+            odds_home = (home_win + home_void)
 
     if flag_home == 1:
         print(f"{home}")
         return odds_home, handicap_home, home
-    elif flag_away == 1:
-        print(f"{away}")
-        return odds_away, -handicap_home, away
-    elif flag_home == 0 and flag_away == 0:
+    elif flag_home == 0:
         return 0, 0, None
 
 

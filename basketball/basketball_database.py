@@ -11,10 +11,11 @@ def delete_all_games():
     x = basketball_collection.delete_many({})
     print(x.deleted_count)
 
+#delete_all_games()
+
 def delete_games(competition):
     x = basketball_collection.delete_many({"competition": competition})
     print(x.deleted_count)
-
 
 def count_games(competition):
     count = 0

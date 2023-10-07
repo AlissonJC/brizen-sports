@@ -187,4 +187,38 @@ def all_hockey_average():
     print(f"Draw: {draw / games * 100:.4}%")
     print(f"Games: {games}")
 
-all_hockey_average()
+def favorite_win():
+    competitions = []
+
+    for game in hockey_collection.find({}):
+        if game["competition"] in competitions:
+            pass
+        else:
+            competitions.append(game["competition"])
+
+    competitions.sort()
+
+    games = 0
+    home_win = 0
+    away_win = 0
+    fav_win = 0
+
+    for competition in competitions:
+        for game in hockey_collection.find({"competition": competition}):
+            if game["odds_home"] and game["odds_away"] != 0:
+                games += 1
+                if game["home_ft"] > game["away_ft"]:
+                    home_win += 1
+                    if game["odds_home"] < game["odds_away"]:
+                        fav_win += 1
+                elif game["home_ft"] < game["away_ft"]:
+                    away_win += 1
+                    if game["odds_home"] > game["odds_away"]:
+                        fav_win += 1
+        print(f"{competition.upper()} {fav_win/games*100:.2f}% favorite win.")
+        games = 0
+        home_win = 0
+        away_win = 0
+        fav_win = 0
+
+favorite_win()

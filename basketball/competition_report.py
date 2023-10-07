@@ -187,11 +187,54 @@ def team_home_win_percentage(competition, handicap, team):
     print(f"Void: {void / games * 100:.4}%")
     print(f"Lost: {lost / games * 100:.4}%")
 
+def favorite_win():
+    competitions = []
+
+    for game in basketball_collection.find({}):
+        if game["competition"] in competitions:
+            pass
+        else:
+            competitions.append(game["competition"])
+
+    competitions.sort()
+
+    games = 0
+    home_win = 0
+    away_win = 0
+    fav_win = 0
+    home_ft = 0
+    away_ft = 0
+
+    for competition in competitions:
+        for game in basketball_collection.find({"competition": competition}):
+            if game["odds_home"] and game["odds_away"] != 0:
+                games += 1
+                if game["home_ft"] > game["away_ft"] and game["odds_home"] < game["odds_away"]:
+                    home_ft += game["home_ft"]
+                    away_ft += game["away_ft"]
+                    home_win += 1
+                    fav_win += 1
+                elif game["home_ft"] < game["away_ft"] and game["odds_home"] > game["odds_away"]:
+                    away_win += 1
+                    fav_win += 1
+        home_advantage = (home_ft - away_ft)/games
+        print(f"{competition.upper()} {fav_win/games*100:.2f}% favorite win. --- Home Advantage: {home_advantage:.2f}\n")
+        games = 0
+        home_win = 0
+        away_win = 0
+        fav_win = 0
+        home_ft = 0
+        away_ft = 0
+
+
+
 #competition = get_competition()
 #team = get_home_team(competition)
 #handicap = float(input("Type the handicap: "))
 
 #team_home_win_percentage(competition, handicap, team)
-all_home_winning()
-print()
-all_basketball_average()
+#all_home_winning()
+#print()
+#all_basketball_average()
+
+favorite_win()
